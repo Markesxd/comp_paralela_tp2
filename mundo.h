@@ -30,3 +30,7 @@ void moveObjeto(Mundo *mundo, int *VAR_PROG, Objeto* objeto, int geracao);
 void tornaAdulto(Mundo* mundo, int tipo);
 int verificaAdjacente(Mundo *mundo, Objeto* objeto, int *posicoes, int tipo);
 void moveRaposa(Mundo *mundo, int *VAR_PROG, int geracao);
+void reiniciaMundo(Mundo* mundo);
+void sincronizaMundo(Mundo* mundo);
+void salvaMundo(Mundo* mundo, int *VAR_PROG);
+int resolveConflito(Objeto objeto1, Objeto objeto2);

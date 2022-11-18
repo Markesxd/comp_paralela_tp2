@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdio.h>
 #include "mundo.h"
+#include <omp.h>
+#include <time.h>
 
 int main(void){
     int VAR_PROG[7];
@@ -34,12 +36,22 @@ int main(void){
             }
         criaObjeto(&mundo, tipo, atoi(x), atoi(y));
     }
-
+    
+    time_t t1 = clock();
     for(int i = 0; i < VAR_PROG[N_GEN]; i++){
-        imprimeMundo(mundo);
         iteracao(&mundo, VAR_PROG, i);
     }
+    time_t t2 = clock();
+    FILE *f;
+    f = fopen("./result.csv" , "a");
+    fprintf(f, "%f,main",  ((t2 - t1) / (double) CLOCKS_PER_SEC));
+    for(int i = 0; i < 7; i++){
+        fprintf(f, ",%d", VAR_PROG[i]);
+    }
+    fprintf(f, "\n");
+    fclose(f);
 
+    salvaMundo(&mundo, VAR_PROG);
 
     return 0;
 }

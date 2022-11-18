@@ -1,5 +1,25 @@
 #include "mundo.h"
 
+void salvaMundo(Mundo* mundo, int *VAR_PROG){
+    for(int i = 0; i < 6; i++){
+        printf("%d ", VAR_PROG[i]);
+    }
+    printf("%d\n", VAR_PROG[6]);
+
+    for(int i = 0; i < mundo->linhas * mundo->colunas; i++){
+        Objeto objeto = mundo->elementos.objetos[i];
+        if(objeto.id != VAZIO){
+            if(objeto.tipo == RAPOSA){
+                printf("RAPOSA %d %d\n", objeto.x, objeto.y);
+            }else if(objeto.tipo == COELHO){
+                printf("COELHO %d %d\n", objeto.x, objeto.y);
+            }else{
+                printf("ROCHA %d %d\n", objeto.x, objeto.y);
+            }
+        }
+    }
+}
+
 void criaMundo(int linhas, int colunas, Mundo *mundo)
 {
     mundo->corpo = (int **)malloc(sizeof(int *) * linhas);
@@ -41,34 +61,9 @@ int criaObjeto(Mundo *mundo, int tipo, int x, int y)
     }
 }
 
-/*void criaBebe(Mundo *mundo, int tipo,int x, int y){
-    for(int i = 0; i < mundo->linhas * mundo->colunas; i++){
-        if(mundo->elementos.bebes[i].id == -1){
-            mundo->elementos.bebes[i].x = x;
-            mundo->elementos.bebes[i].y = y;
-            mundo->elementos.bebes[i].tipo = tipo;
-            mundo->elementos.bebes[i].id = 0;
-            return;
-        }
-    }
-}*/
-
-/*void insereBebes(Mundo *mundo){
-    for(int i = 0; i < mundo->linhas * mundo->colunas; i++){
-        if(mundo->elementos.bebes[i].id == 0){
-            if(mundo->corpo[mundo->elementos.bebes[i].x][mundo->elementos.bebes[i].y] == VAZIO){
-                criaObjeto(mundo, mundo->elementos.bebes[i].tipo, mundo->elementos.bebes[i].x, mundo->elementos.bebes[i].y);
-            }
-            else{
-                if(mundo->elementos.bebes[i].tipo == )
-            }
-        }
-    }
-}*/
-
 void removerObjeto(Mundo *mundo, int id)
 {
-    mundo->elementos.objetos[id].id = -1;
+    mundo->elementos.objetos[id].id = VAZIO;
     mundo->elementos.numeroDeObjetos--;
 }
 
@@ -107,12 +102,85 @@ void imprimeMundo(Mundo mundo)
 
 void iteracao(Mundo *mundo, int *VAR_PROG, int geracao)
 {
+    //Iteracao Coelho
     moveCoelho(mundo, VAR_PROG, geracao);
     tornaAdulto(mundo, COELHO);
+    sincronizaMundo(mundo);
+    
+    //Iteracao Raposa
     moveRaposa(mundo, VAR_PROG, geracao);
     tornaAdulto(mundo, RAPOSA);
+    sincronizaMundo(mundo);
 
 }
+
+void reiniciaMundo(Mundo* mundo){
+    for(int i = 0; i < mundo->linhas; i++){
+        for(int j = 0; j < mundo->colunas; j++){
+            mundo->corpo[i][j] = VAZIO;
+        }
+    }
+}
+
+void sincronizaMundo(Mundo* mundo){
+    reiniciaMundo(mundo);
+    for(int i = 0; i < mundo->linhas * mundo->colunas; i++){
+        int x = mundo->elementos.objetos[i].x;
+        int y = mundo->elementos.objetos[i].y;
+        if(mundo->elementos.objetos[i].id != VAZIO){
+            if(mundo->corpo[x][y] == VAZIO){
+                mundo->corpo[x][y] = mundo->elementos.objetos[i].id;
+            }
+            else{
+                int conflito = resolveConflito(mundo->elementos.objetos[mundo->corpo[x][y]], mundo->elementos.objetos[i]);
+                if(conflito == mundo->corpo[x][y]){
+                    removerObjeto(mundo, mundo->elementos.objetos[i].id);
+                }
+                else{
+                    removerObjeto(mundo, mundo->corpo[x][y]);
+                    mundo->corpo[x][y] = conflito;
+                }
+            }
+        }
+    }
+}
+
+// X R C
+// R M Rf
+// C R M
+
+int resolveConflito(Objeto objeto1, Objeto objeto2){
+    if(objeto1.tipo == RAPOSA && objeto2.tipo == RAPOSA){
+        if(objeto1.comida == objeto2.comida){
+            if(objeto1.proc < objeto2.proc){
+                return objeto2.id;
+            } 
+            return objeto1.id;
+        }
+        if(objeto1.comida < objeto2.comida){
+            return objeto1.id;
+        }
+        return objeto2.id;
+
+    }
+    else if(objeto1.tipo == COELHO && objeto1.tipo == COELHO){
+        if(objeto1.proc < objeto2.proc){
+            return objeto2.id;
+        }
+        return objeto1.id;
+    }
+    
+    else{
+        if(objeto1.tipo == RAPOSA){
+            return objeto1.id;
+        }
+
+        return objeto2.id;
+    }
+    
+}
+
+
 
 void tornaAdulto(Mundo *mundo, int tipo)
 {
@@ -165,7 +233,6 @@ void moveObjeto(Mundo *mundo, int *VAR_PROG, Objeto *objeto, int geracao)
         {
             objeto->comida++;
             if(objeto->comida == VAR_PROG[GEN_COMIDA_RAPOSAS]){
-                mundo->corpo[x][y] = VAZIO;
                 removerObjeto(mundo, objeto->id);
                 return;
             }
@@ -188,18 +255,13 @@ void moveObjeto(Mundo *mundo, int *VAR_PROG, Objeto *objeto, int geracao)
     {
         if (movimento == 0 && posicoes[i] == 1)
         {
-            // p = 3
-            // movimeto = 0;
-            // [1, 0, 0, 1]
             if (i == 0)
             {
                 if (mundo->corpo[x - 1][y] != VAZIO)
                 {
                     removerObjeto(mundo, mundo->corpo[x - 1][y]);
                 }
-                mundo->corpo[x - 1][y] = objeto->id;
-                objeto->x = x - 1;
-                printf("id: %d Moveu para norte\n", objeto->id);
+                objeto->x-- ;
             }
             else if (i == 1)
             {
@@ -207,9 +269,7 @@ void moveObjeto(Mundo *mundo, int *VAR_PROG, Objeto *objeto, int geracao)
                 {
                     removerObjeto(mundo, mundo->corpo[x][y + 1]);
                 }
-                mundo->corpo[x][y + 1] = objeto->id;
-                printf("id: %d Moveu para leste\n", objeto->id);
-                objeto->y = y + 1;
+                objeto->y++;
             }
             else if (i == 2)
             {
@@ -217,9 +277,7 @@ void moveObjeto(Mundo *mundo, int *VAR_PROG, Objeto *objeto, int geracao)
                 {
                     removerObjeto(mundo, mundo->corpo[x + 1][y]);
                 }
-                mundo->corpo[x + 1][y] = objeto->id;
-                printf("id: %d Moveu para sul\n", objeto->id);
-                objeto->x = x + 1;
+                objeto->x++;
             }
             else
             {
@@ -227,9 +285,7 @@ void moveObjeto(Mundo *mundo, int *VAR_PROG, Objeto *objeto, int geracao)
                 {
                     removerObjeto(mundo, mundo->corpo[x][y - 1]);
                 }
-                mundo->corpo[x][y - 1] = objeto->id;
-                printf("id: %d Moveu para oeste\n", objeto->id);
-                objeto->y = y - 1;
+                objeto->y--;
             }
             break;
         }
@@ -333,7 +389,6 @@ int reproduzObjeto(Mundo *mundo, int *VAR_PROG, Objeto *objeto)
 
         else
         {
-            mundo->corpo[objeto->x][objeto->y] = VAZIO;
             objeto->proc++;
             return 0;
         }
@@ -349,7 +404,6 @@ int reproduzObjeto(Mundo *mundo, int *VAR_PROG, Objeto *objeto)
         }
         else
         {
-            mundo->corpo[objeto->x][objeto->y] = VAZIO;
             objeto->proc++;
             return 0;
         }
