@@ -44,7 +44,7 @@ int main(void){
     time_t t2 = clock();
     FILE *f;
     f = fopen("./result.csv" , "a");
-    fprintf(f, "%f,main",  ((t2 - t1) / (double) CLOCKS_PER_SEC));
+    fprintf(f, "%f,main_prl_v5",  ((t2 - t1) / (double) CLOCKS_PER_SEC));
     for(int i = 0; i < 7; i++){
         fprintf(f, ",%d", VAR_PROG[i]);
     }

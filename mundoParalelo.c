@@ -1,4 +1,5 @@
 #include "mundo.h"
+#include <omp.h>
 
 void salvaMundo(Mundo* mundo, int *VAR_PROG){
     for(int i = 0; i < 6; i++){
@@ -115,6 +116,7 @@ void iteracao(Mundo *mundo, int *VAR_PROG, int geracao)
 }
 
 void reiniciaMundo(Mundo* mundo){
+    #pragma omp parallel for num_threads(2)
     for(int i = 0; i < mundo->linhas; i++){
         for(int j = 0; j < mundo->colunas; j++){
             mundo->corpo[i][j] = VAZIO;
@@ -191,6 +193,7 @@ void tornaAdulto(Mundo *mundo, int tipo)
 
 void moveRaposa(Mundo *mundo, int *VAR_PROG, int geracao)
 {
+    #pragma omp parallel for num_threads(2)
     for (int i = 0; i < mundo->colunas * mundo->linhas; i++)
     {
         if (mundo->elementos.objetos[i].id != -1 && mundo->elementos.objetos[i].tipo == RAPOSA)
@@ -202,6 +205,8 @@ void moveRaposa(Mundo *mundo, int *VAR_PROG, int geracao)
 
 void moveCoelho(Mundo *mundo, int *VAR_PROG, int geracao)
 {
+
+    #pragma omp parallel for num_threads(2)
     for (int i = 0; i < mundo->colunas * mundo->linhas; i++)
     {
         if (mundo->elementos.objetos[i].id != -1 && mundo->elementos.objetos[i].tipo == COELHO)
