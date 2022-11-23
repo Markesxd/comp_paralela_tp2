@@ -103,11 +103,11 @@ void imprimeMundo(Mundo mundo)
 
 void iteracao(Mundo *mundo, int *VAR_PROG)
 {
+        FILE *f;
+        f = fopen("./results.csv", "a");
     for(int geracao = 0; geracao < VAR_PROG[N_GEN]; geracao++){
 
         time_t t1 , t2;
-        FILE *f;
-        f = fopen("./results.csv", "a");
         
         //Iteracao Coelho
         t1 = clock();
@@ -137,6 +137,7 @@ void iteracao(Mundo *mundo, int *VAR_PROG)
         t2 = clock();
         pa(VAR_PROG, t1, t2, f, "sincronizaMundo2");
     }
+    fclose(f);
 
 }
 
