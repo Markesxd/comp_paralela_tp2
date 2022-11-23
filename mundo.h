@@ -34,3 +34,4 @@ void reiniciaMundo(Mundo* mundo);
 void sincronizaMundo(Mundo* mundo);
 void salvaMundo(Mundo* mundo, int *VAR_PROG);
 int resolveConflito(Objeto objeto1, Objeto objeto2);
+void pa(int *VAR_PROG, time_t t1, time_t t2, FILE *f, char label[10]);

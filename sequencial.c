@@ -37,18 +37,18 @@ int main(void){
         criaObjeto(&mundo, tipo, atoi(x), atoi(y));
     }
     
-    time_t t1 = clock();
+    // time_t t1 = clock();
         iteracao(&mundo, VAR_PROG);
-    time_t t2 = clock();
-    printf("time: %f\n", (t2 - t1) / (double) CLOCKS_PER_SEC);
-    FILE *f;
-    f = fopen("./result.csv" , "a");
-    fprintf(f, "%f,main_prl_v8",  ((t2 - t1) / (double) CLOCKS_PER_SEC));
-    for(int i = 0; i < 7; i++){
-        fprintf(f, ",%d", VAR_PROG[i]);
-    }
-    fprintf(f, "\n");
-    fclose(f);
+    // time_t t2 = clock();
+    // printf("time: %f\n", (t2 - t1) / (double) CLOCKS_PER_SEC);
+    // FILE *f;
+    // f = fopen("./result.csv" , "a");
+    // fprintf(f, "%f,main_prl_v8",  ((t2 - t1) / (double) CLOCKS_PER_SEC));
+    // for(int i = 0; i < 7; i++){
+    //     fprintf(f, ",%d", VAR_PROG[i]);
+    // }
+    // fprintf(f, "\n");
+    // fclose(f);
 
     salvaMundo(&mundo, VAR_PROG);
 

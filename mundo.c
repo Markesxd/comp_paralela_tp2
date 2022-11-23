@@ -1,4 +1,5 @@
 #include "mundo.h"
+#include <time.h>
 
 void salvaMundo(Mundo* mundo, int *VAR_PROG){
     for(int i = 0; i < 6; i++){
@@ -104,17 +105,48 @@ void iteracao(Mundo *mundo, int *VAR_PROG)
 {
     for(int geracao = 0; geracao < VAR_PROG[N_GEN]; geracao++){
 
+        time_t t1 , t2;
+        FILE *f;
+        f = fopen("./results.csv", "a");
+        
         //Iteracao Coelho
+        t1 = clock();
         moveCoelho(mundo, VAR_PROG, geracao);
+        t2 = clock();
+        pa(VAR_PROG, t1, t2, f, "moveCoelho");
+        t1 = clock();
         tornaAdulto(mundo, COELHO);
+        t2 = clock();
+        pa(VAR_PROG, t1, t2, f, "tornaAdulto1");
+        t1 = clock();
         sincronizaMundo(mundo);
+        t2 = clock();
+        pa(VAR_PROG, t1, t2, f, "sicronizaMundo1");
         
         //Iteracao Raposa
+        t1 = clock();
         moveRaposa(mundo, VAR_PROG, geracao);
+        t2 = clock();
+        pa(VAR_PROG, t1, t2, f, "moveRaposa");
+        t1 = clock();
         tornaAdulto(mundo, RAPOSA);
+        t2 = clock();
+        pa(VAR_PROG, t1, t2, f, "tornaAdulto2");
+        t1 = clock();
         sincronizaMundo(mundo);
+        t2 = clock();
+        pa(VAR_PROG, t1, t2, f, "sincronizaMundo2");
     }
 
+}
+
+void pa(int *VAR_PROG, time_t t1, time_t t2, FILE *f, char label[10])
+{
+    fprintf(f, "%f,%s",  ((t2 - t1) / (double) CLOCKS_PER_SEC), label);
+    for(int i = 0; i < 7; i++){
+        fprintf(f, ",%d", VAR_PROG[i]);
+    }
+    fprintf(f, "\n");
 }
 
 void reiniciaMundo(Mundo* mundo){

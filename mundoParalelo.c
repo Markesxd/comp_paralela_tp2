@@ -138,7 +138,7 @@ void reiniciaMundo(Mundo* mundo){
 void sincronizaMundo(Mundo* mundo){
     reiniciaMundo(mundo);
     for(int i = 0; i < mundo->linhas * mundo->colunas; i++){
-        int x = mundo->elementos.objetos[i].x;
+        int x = mundo->elementos.objetlinhasos[i].x;
         int y = mundo->elementos.objetos[i].y;
         if(mundo->elementos.objetos[i].id != VAZIO){
             if(mundo->corpo[x][y] == VAZIO){
