@@ -1,4 +1,6 @@
 #include "mundo.h"
+#include <omp.h>
+
 
 void salvaMundo(Mundo* mundo, int *VAR_PROG){
     for(int i = 0; i < 6; i++){
@@ -6,16 +8,15 @@ void salvaMundo(Mundo* mundo, int *VAR_PROG){
     }
     printf("%d\n", VAR_PROG[6]);
 
-    for(int i = 0; i < mundo->linhas * mundo->colunas; i++){
-        Objeto objeto = mundo->elementos.objetos[i];
-        if(objeto.id != VAZIO){
-            if(objeto.tipo == RAPOSA){
-                printf("RAPOSA %d %d\n", objeto.x, objeto.y);
-            }else if(objeto.tipo == COELHO){
-                printf("COELHO %d %d\n", objeto.x, objeto.y);
-            }else{
-                printf("ROCHA %d %d\n", objeto.x, objeto.y);
-            }
+    for(int i = 0; i < mundo->elementos.numeroDeObjetos; i++){
+        int id = mundo->elementos.ids[i];
+        Objeto objeto = mundo->elementos.objetos[id];
+        if(objeto.tipo == RAPOSA){
+            printf("RAPOSA %d %d\n", objeto.x, objeto.y);
+        }else if(objeto.tipo == COELHO){
+            printf("COELHO %d %d\n", objeto.x, objeto.y);
+        }else{
+            printf("ROCHA %d %d\n", objeto.x, objeto.y);
         }
     }
 }
@@ -44,17 +45,19 @@ void insereObjeto(Mundo *mundo, Objeto objeto)
 int criaObjeto(Mundo *mundo, int tipo, int x, int y)
 {
 
-    for (int i = 0; i < mundo->linhas * mundo->colunas; i++)
+    for (int i = 0; i < mundo->elementos.numeroDeObjetos; i++)
     {
-        if (mundo->elementos.objetos[i].id == -1)
+        int id = mundo->elementos.ids[i];
+        if (mundo->elementos.objetos[id].id == -1)
         {
-            mundo->elementos.objetos[i].tipo = tipo;
+            mundo->elementos.objetos[id].tipo = tipo;
+            mundo->elementos.ids[mundo->elementos.numeroDeObjetos] = i;
             mundo->elementos.numeroDeObjetos++;
-            mundo->elementos.objetos[i].comida = 0;
-            mundo->elementos.objetos[i].proc = 0;
-            mundo->elementos.objetos[i].x = x;
-            mundo->elementos.objetos[i].y = y;
-            mundo->elementos.objetos[i].id = i;
+            mundo->elementos.objetos[id].comida = 0;
+            mundo->elementos.objetos[id].proc = 0;
+            mundo->elementos.objetos[id].x = x;
+            mundo->elementos.objetos[id].y = y;
+            mundo->elementos.objetos[id].id = i;
             insereObjeto(mundo, mundo->elementos.objetos[i]);
             return mundo->elementos.objetos[i].id;
         }
@@ -64,6 +67,13 @@ int criaObjeto(Mundo *mundo, int tipo, int x, int y)
 void removerObjeto(Mundo *mundo, int id)
 {
     mundo->elementos.objetos[id].id = VAZIO;
+    for(int i = 0; i < mundo->elementos.numeroDeObjetos; i++){
+        if(mundo->elementos.ids[i] == id){
+            mundo->elementos.ids[i] = mundo->elementos.ids[mundo->elementos.numeroDeObjetos - 1];
+            mundo->elementos.ids[mundo->elementos.numeroDeObjetos - 1] = -1;
+            break;
+        }
+    }
     mundo->elementos.numeroDeObjetos--;
 }
 
@@ -104,32 +114,26 @@ void iteracao(Mundo *mundo, int *VAR_PROG)
 {
     for(int geracao = 0; geracao < VAR_PROG[N_GEN]; geracao++){
 
-        // #pragma omp parallel private(geracao) num_threads(4) schedule(dinamic,4) 
-        {
 
-            //Iteracao Coelho
-            moveCoelho(mundo, VAR_PROG, geracao);
-            tornaAdulto(mundo, COELHO);
-            //#pragma omp single
-            //{
-                sincronizaMundo(mundo);
-            //}
+        //Iteracao Coelho
+        moveCoelho(mundo, VAR_PROG, geracao);
+        tornaAdulto(mundo, COELHO);
+        sincronizaMundo(mundo);
             
-            //Iteracao Raposa
-            moveRaposa(mundo, VAR_PROG, geracao);
-            tornaAdulto(mundo, RAPOSA);
-            /* #pragma omp single
-            { */
-                sincronizaMundo(mundo);
-            /* } */
-        }
+        
+        //Iteracao Raposa
+        moveRaposa(mundo, VAR_PROG, geracao);
+        tornaAdulto(mundo, RAPOSA);
+        sincronizaMundo(mundo);
     }
 
 }
 
 void reiniciaMundo(Mundo* mundo){
-    for(int i = 0; i < mundo->linhas; i++){
-        for(int j = 0; j < mundo->colunas; j++){
+    int i, j;
+    //#pragma omp parallel for private(i, j) num_threads(4)
+    for(i = 0; i < mundo->linhas; i++){
+        for(j = 0; j < mundo->colunas; j++){
             mundo->corpo[i][j] = VAZIO;
         }
     }
@@ -137,17 +141,18 @@ void reiniciaMundo(Mundo* mundo){
 
 void sincronizaMundo(Mundo* mundo){
     reiniciaMundo(mundo);
-    for(int i = 0; i < mundo->linhas * mundo->colunas; i++){
-        int x = mundo->elementos.objetos[i].x;
-        int y = mundo->elementos.objetos[i].y;
-        if(mundo->elementos.objetos[i].id != VAZIO){
+    for(int i = 0; i < mundo->elementos.numeroDeObjetos; i++){
+        int id = mundo->elementos.ids[i];
+        int x = mundo->elementos.objetos[id].x;
+        int y = mundo->elementos.objetos[id].y;
+        if(mundo->elementos.objetos[id].id != VAZIO){
             if(mundo->corpo[x][y] == VAZIO){
-                mundo->corpo[x][y] = mundo->elementos.objetos[i].id;
+                mundo->corpo[x][y] = mundo->elementos.objetos[id].id;
             }
             else{
-                int conflito = resolveConflito(mundo->elementos.objetos[mundo->corpo[x][y]], mundo->elementos.objetos[i]);
+                int conflito = resolveConflito(mundo->elementos.objetos[mundo->corpo[x][y]], mundo->elementos.objetos[id]);
                 if(conflito == mundo->corpo[x][y]){
-                    removerObjeto(mundo, mundo->elementos.objetos[i].id);
+                    removerObjeto(mundo, mundo->elementos.objetos[id].id);
                 }
                 else{
                     removerObjeto(mundo, mundo->corpo[x][y]);
@@ -189,15 +194,14 @@ int resolveConflito(Objeto objeto1, Objeto objeto2){
     
 }
 
-
-
 void tornaAdulto(Mundo *mundo, int tipo)
 {
-    for (int i = 0; i < mundo->linhas * mundo->colunas; i++)
+    for (int i = 0; i < mundo->elementos.numeroDeObjetos; i++)
     {
-        if (mundo->elementos.objetos[i].id != -1 && mundo->elementos.objetos[i].tipo == BEBE)
+        int id = mundo->elementos.ids[i];
+        if (mundo->elementos.objetos[id].tipo == BEBE)
         {
-            mundo->elementos.objetos[i].tipo = tipo;
+            mundo->elementos.objetos[id].tipo = tipo;
         }
     }
 }
@@ -205,12 +209,13 @@ void tornaAdulto(Mundo *mundo, int tipo)
 void moveRaposa(Mundo *mundo, int *VAR_PROG, int geracao)
 {
     int i;
-    #pragma omp parallel for private(i) num_threads(4) schedule(dynamic, 2) 
-    for (i = 0; i < mundo->colunas * mundo->linhas; i++)
+    #pragma omp parallel for private(i) num_threads(4)
+    for (i = 0; i < mundo->elementos.numeroDeObjetos; i++)
     {
-        if (mundo->elementos.objetos[i].id != -1 && mundo->elementos.objetos[i].tipo == RAPOSA)
+        int id = mundo->elementos.ids[i];
+        if (mundo->elementos.objetos[id].tipo == RAPOSA)
         {
-            moveObjeto(mundo, VAR_PROG, &mundo->elementos.objetos[i], geracao);
+            moveObjeto(mundo, VAR_PROG, &mundo->elementos.objetos[id], geracao);
         }
     }
 }
@@ -218,12 +223,13 @@ void moveRaposa(Mundo *mundo, int *VAR_PROG, int geracao)
 void moveCoelho(Mundo *mundo, int *VAR_PROG, int geracao)
 {
     int i;
-    #pragma omp parallel for private(i) num_threads(4) schedule(dynamic,2) 
-    for (i = 0; i < mundo->colunas * mundo->linhas; i++)
+    #pragma omp parallel for private(i) num_threads(4)
+    for (i = 0; i < mundo->elementos.numeroDeObjetos; i++)
     {
-        if (mundo->elementos.objetos[i].id != -1 && mundo->elementos.objetos[i].tipo == COELHO)
+        int id = mundo->elementos.ids[i];
+        if (mundo->elementos.objetos[id].tipo == COELHO)
         {
-            moveObjeto(mundo, VAR_PROG, &mundo->elementos.objetos[i], geracao);
+            moveObjeto(mundo, VAR_PROG, &mundo->elementos.objetos[id], geracao);
         }
     }
 }

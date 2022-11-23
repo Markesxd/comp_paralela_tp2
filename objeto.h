@@ -18,6 +18,7 @@ typedef struct {
 
 typedef struct{
     int numeroDeObjetos;
+    int* ids;
     Objeto *objetos;
 } Elementos;
 

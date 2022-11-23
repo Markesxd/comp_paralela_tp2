@@ -38,13 +38,12 @@ int main(void){
     }
     
     time_t t1 = clock();
-    for(int i = 0; i < VAR_PROG[N_GEN]; i++){
-        iteracao(&mundo, VAR_PROG, i);
-    }
+        iteracao(&mundo, VAR_PROG);
     time_t t2 = clock();
+    printf("time: %f\n", (t2 - t1) / (double) CLOCKS_PER_SEC);
     FILE *f;
     f = fopen("./result.csv" , "a");
-    fprintf(f, "%f,main_prl_v5",  ((t2 - t1) / (double) CLOCKS_PER_SEC));
+    fprintf(f, "%f,main_prl_v8",  ((t2 - t1) / (double) CLOCKS_PER_SEC));
     for(int i = 0; i < 7; i++){
         fprintf(f, ",%d", VAR_PROG[i]);
     }

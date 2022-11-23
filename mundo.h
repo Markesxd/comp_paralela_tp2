@@ -21,7 +21,7 @@ typedef struct {
 void criaMundo(int linhas, int colunas, Mundo *mundo);
 void insereObjeto(Mundo* mundo, Objeto objeto);
 void imprimeMundo(Mundo mundo);
-void iteracao(Mundo *mundo, int *VAR_PROG, int geracao);
+void iteracao(Mundo *mundo, int *VAR_PROG);
 int reproduzObjeto(Mundo *mundo, int *VAR_PROG, Objeto *objeto);
 int criaObjeto(Mundo *mundo, int tipo, int x, int y);
 void removerObjeto(Mundo *mundo, int id);

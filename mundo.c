@@ -100,17 +100,20 @@ void imprimeMundo(Mundo mundo)
     printf("\n");
 }
 
-void iteracao(Mundo *mundo, int *VAR_PROG, int geracao)
+void iteracao(Mundo *mundo, int *VAR_PROG)
 {
-    //Iteracao Coelho
-    moveCoelho(mundo, VAR_PROG, geracao);
-    tornaAdulto(mundo, COELHO);
-    sincronizaMundo(mundo);
-    
-    //Iteracao Raposa
-    moveRaposa(mundo, VAR_PROG, geracao);
-    tornaAdulto(mundo, RAPOSA);
-    sincronizaMundo(mundo);
+    for(int geracao = 0; geracao < VAR_PROG[N_GEN]; geracao++){
+
+        //Iteracao Coelho
+        moveCoelho(mundo, VAR_PROG, geracao);
+        tornaAdulto(mundo, COELHO);
+        sincronizaMundo(mundo);
+        
+        //Iteracao Raposa
+        moveRaposa(mundo, VAR_PROG, geracao);
+        tornaAdulto(mundo, RAPOSA);
+        sincronizaMundo(mundo);
+    }
 
 }
 
