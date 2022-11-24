@@ -1,22 +1,26 @@
 #include "mundo.h"
 #include <omp.h>
-
+#include <time.h>
 
 void salvaMundo(Mundo* mundo, int *VAR_PROG){
+    FILE *f;
+    char filename[50];
+    sprintf(filename, "./output/%ld.txt", time(0));
+    f = fopen(filename, "w");
     for(int i = 0; i < 6; i++){
-        printf("%d ", VAR_PROG[i]);
+        fprintf(f, "%d ", VAR_PROG[i]);
     }
-    printf("%d\n", VAR_PROG[6]);
+    fprintf(f, "%d\n", VAR_PROG[6]);
 
     for(int i = 0; i < mundo->elementos.numeroDeObjetos; i++){
         int id = mundo->elementos.ids[i];
         Objeto objeto = mundo->elementos.objetos[id];
         if(objeto.tipo == RAPOSA){
-            printf("RAPOSA %d %d\n", objeto.x, objeto.y);
+            fprintf(f, "RAPOSA %d %d\n", objeto.x, objeto.y);
         }else if(objeto.tipo == COELHO){
-            printf("COELHO %d %d\n", objeto.x, objeto.y);
+            fprintf(f, "COELHO %d %d\n", objeto.x, objeto.y);
         }else{
-            printf("ROCHA %d %d\n", objeto.x, objeto.y);
+            fprintf(f, "ROCHA %d %d\n", objeto.x, objeto.y);
         }
     }
 }
@@ -112,21 +116,62 @@ void imprimeMundo(Mundo mundo)
 
 void iteracao(Mundo *mundo, int *VAR_PROG)
 {
+        time_t total = 0;
+        FILE *f;
+        char filename[50];
+        sprintf(filename, "./results/%ld.csv", time(0));
+        f = fopen(filename, "a");
     for(int geracao = 0; geracao < VAR_PROG[N_GEN]; geracao++){
 
-
+        time_t t1 , t2;
+        
         //Iteracao Coelho
+        t1 = clock();
         moveCoelho(mundo, VAR_PROG, geracao);
+        t2 = clock();
+        total += t2 - t1;
+        pa(VAR_PROG, t2 - t1, f, "moveCoelho");
+        t1 = clock();
         tornaAdulto(mundo, COELHO);
+        t2 = clock();
+        total += t2 - t1;
+        pa(VAR_PROG, t2 - t1, f, "tornaAdulto1");
+        t1 = clock();
         sincronizaMundo(mundo);
-            
+        t2 = clock();
+        total += t2 - t1;
+        pa(VAR_PROG, t2 - t1, f, "sicronizaMundo1");
         
         //Iteracao Raposa
+        t1 = clock();
         moveRaposa(mundo, VAR_PROG, geracao);
+        t2 = clock();
+        total += t2 - t1;
+        pa(VAR_PROG, t2 - t1, f, "moveRaposa");
+        t1 = clock();
         tornaAdulto(mundo, RAPOSA);
+        t2 = clock();
+        total += t2 - t1;
+        pa(VAR_PROG, t2 - t1, f, "tornaAdulto2");
+        t1 = clock();
         sincronizaMundo(mundo);
+        t2 = clock();
+        total += t2 - t1;
+        pa(VAR_PROG, t2 - t1, f, "sincronizaMundo2");
     }
 
+        pa(VAR_PROG, total, f, "iteracao");
+    fclose(f);
+
+}
+
+void pa(int *VAR_PROG, time_t t, FILE *f, char label[10])
+{
+    fprintf(f, "%f,%s", t / (double) CLOCKS_PER_SEC, label);
+    for(int i = 0; i < 7; i++){
+        fprintf(f, ",%d", VAR_PROG[i]);
+    }
+    fprintf(f, "\n");
 }
 
 void reiniciaMundo(Mundo* mundo){

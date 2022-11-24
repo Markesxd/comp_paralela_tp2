@@ -1,11 +1,11 @@
 test_sec:
 	gcc sequencial.c objeto.c mundo.c
-	./a.out < ./testes/teste.txt
+	./a.out < ./testes/objetos.txt
 	rm a.out
 
 test_prl:
 	gcc sequencial.c objeto.c mundoParalelo.c -fopenmp
-	./a.out < ./testes/teste.txt
+	./a.out < ./testes/objetos.txt
 	rm a.out
 
 sec: 
